@@ -1,3 +1,6 @@
+nameOverride: ""
+fullnameOverride: ""
+
 ## @section nodeClasses
 ## Deploy Karpenter NodeClasses within this helm release
 ##

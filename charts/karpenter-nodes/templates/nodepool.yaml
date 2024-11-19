@@ -1,38 +1,40 @@
-{{- range $npName, $npData:= .Values.nodePools }}
+{{- range $nodepoolName, $nodepoolData:= .Values.nodePools }}
 ---
 apiVersion: karpenter.sh/v1beta1
 kind: NodePool
 metadata:
-  {{- with $npData.additionalAnnotations }}
+  name: {{ $nodepoolName | trunc 63 | trimSuffix "-" }}
   annotations:
+    helm.sh/hook-weight: "10"
+  {{- with $nodepoolData.additionalAnnotations }}
     {{- range $key, $value := . }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
   {{- end }}
-  {{- with $npData.additionalLabels }}
   labels:
+    {{- include "karpenter-nodes.labels" (dict "context" $ "component" "nodepool" "name" ($nodepoolName | trunc 63 | trimSuffix "-")) | nindent 4 }}
+  {{- with $nodepoolData.additionalLabels }}
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: {{ $npName }}
 spec:
   template:
-    {{- with $npData.template.metadata }}
+    {{- with $nodepoolData.template.metadata }}
     metadata:
       {{- toYaml . | nindent 6 }}
     {{- end }}
-    {{- with $npData.template.spec }}
+    {{- with $nodepoolData.template.spec }}
     spec:
       {{- toYaml . | nindent 6 }}
     {{- end }}
-  {{- with $npData.disruption }}
+  {{- with $nodepoolData.disruption }}
   disruption:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with $npData.limits }}
+  {{- with $nodepoolData.limits }}
   limits:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with $npData.weight }}
+  {{- with $nodepoolData.weight }}
   weight: {{ . }}
   {{- end }}
 {{- end }}

@@ -1,0 +1,67 @@
+{{- range $ec2ncName, $ec2ncData:= .Values.nodeClasses }}
+---
+apiVersion: karpenter.k8s.aws/v1beta1
+kind: EC2NodeClass
+metadata:
+  name: {{ $ec2ncName | trunc 63 | trimSuffix "-" }}
+  annotations:
+    helm.sh/hook-weight: "0"
+  {{- with $ec2ncData.additionalAnnotations }}
+    {{- range $key, $value := . }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+    {{- include "karpenter-nodes.labels" (dict "context" $ "component" "ec2nc" "name" ($ec2ncName | trunc 63 | trimSuffix "-")) | nindent 4 }}
+  {{- with $ec2ncData.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with $ec2ncData.kubelet }}
+  kubelet:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $ec2ncData.amiFamily }}
+  amiFamily: {{ . }}
+  {{- end }}
+  {{- with required "subnetSelectorTerms is required" $ec2ncData.subnetSelectorTerms }}
+  subnetSelectorTerms:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with required "securityGroupSelectorTerms is required" $ec2ncData.securityGroupSelectorTerms }}
+  securityGroupSelectorTerms:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $ec2ncData.role }}
+  role: {{ . }}
+  {{- end }}
+  {{- with $ec2ncData.instanceProfile }}
+  instanceProfile: {{ . }}
+  {{- end }}
+  {{- with $ec2ncData.amiSelectorTerms }}
+  amiSelectorTerms:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $ec2ncData.tags }}
+  tags:
+    {{- range $key, $value := . }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  {{- with $ec2ncData.metadataOptions }}
+  metadataOptions:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $ec2ncData.instanceStorePolicy }}
+  instanceStorePolicy: {{ . }}
+  {{- end }}
+  {{- with $ec2ncData.userData }}
+  userData: {{ . }}
+  {{- end }}
+  {{- with $ec2ncData.detailedMonitoring }}
+  detailedMonitoring: {{ . }}
+  {{- end }}
+  {{- with $ec2ncData.associatePublicIPAddress }}
+  associatePublicIPAddress: {{ . }}
+  {{- end }}
+{{- end }}
